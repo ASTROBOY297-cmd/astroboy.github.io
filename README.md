@@ -13,6 +13,7 @@
 自分のポートフォリオです
   <h1>こんにちは！</h1>
   <p>最初の試作品です</p>
-  👉 [自己紹介ページ](https://astroboy.github.io/ページ)
+  👉 [自己紹介ページ](https://astroboy297-cmd.github.io/astroboy.github.io/)
+
 </body>
 </html>
