@@ -10,8 +10,8 @@
 </head>
 <body>
   # astroboy.github.io
-自分のポートフォリオ
+自分のポートフォリオです
   <h1>こんにちは！</h1>
-  <p>これはGitHub Pagesで作った私のホームページです。</p>
+  <p>最初の試作品です</p>
 </body>
 </html>
