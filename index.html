@@ -2,81 +2,97 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <!-- ページの文字コードをUTF-8に設定（日本語対応） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- モバイル端末での画面幅をデバイスに合わせる設定 -->
   <title>ホームページ</title>
   <style>
     /* 基本スタイル */
     body {
-      font-family: Arial, sans-serif; /* シンプルで読みやすいフォント */
-      line-height: 1.6; /* 読みやすさ向上のために行間を調整 */
-      background-color: #f9f9f9; /* 優しい背景色でテキストを目立たせる */
-      text-align: center; /* コンテンツを中央揃え */
-      margin: 0;
-      padding: 0;
+      font-family: Arial, sans-serif; /* フォントをシンプルで読みやすいArialに設定 */
+      line-height: 1.6; /* 行間を広げて読みやすく */
+      background-color: #f9f9f9; /* 背景色を淡いグレーに設定 */
+      text-align: center; /* 全体を中央揃えにする */
+      margin: 0; /* 余白をリセット */
+      padding: 0; /* パディングをリセット */
     }
 
     h1 {
-      color: #333; /* 見出しを目立たせる濃い色 */
-      margin-top: 20px; /* 十分な余白を確保 */
+      color: #333; /* 見出し文字を濃いグレーで強調 */
+      margin-top: 20px; /* 上部に余白を追加 */
     }
 
     p {
-      color: #555; /* テキストカラーを少し薄くして背景とのコントラストを調整 */
-      margin: 10px 0; /* 段落間のスペースを適切に設定 */
+      color: #555; /* テキストを少し薄いグレーにして柔らかい印象に */
+      margin: 10px 0; /* 段落の上下にスペースを設定 */
     }
 
     img {
-      border-radius: 10px; /* 画像の角を丸くして柔らかい印象を与える */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 画像を立体的に見せる影 */
+      border-radius: 10px; /* 画像の角を丸くする */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 画像に軽い影をつけて立体感を追加 */
+      max-width: 100%; /* 画像が画面幅を超えないように調整 */
+      height: auto; /* アスペクト比を保ったままサイズ変更 */
     }
 
     /* 画像スライドインエフェクト */
     .image-container {
-      display: flex; /* 横並びに画像を配置 */
-      justify-content: center; /* 中央揃え */
+      display: flex; /* 子要素（画像）を横並びに配置 */
+      justify-content: center; /* 横方向でコンテンツを中央揃え */
+      flex-wrap: wrap; /* 横幅に収まりきらない場合、次の行に折り返す */
       gap: 10px; /* 画像間のスペースを設定 */
-      margin-top: 20px; /* セクション間の余白を確保 */
-      overflow: hidden; /* スライドインエフェクト用に画像がはみ出さないよう設定 */
-      position: relative; /* 子要素の配置に関連する基準 */
+      margin-top: 20px; /* 上部に余白を追加 */
+      overflow: hidden; /* スライドインエフェクトのため、コンテナ外の要素を隠す */
     }
 
     .image-container img {
-      transform: translateY(100%); /* 初期位置をコンテナ外の下部に設定 */
-      transition: transform 0.5s ease-in-out; /* スライドインのアニメーションをスムーズに */
+      transform: translateY(100%); /* 初期状態で画像を下に隠す */
+      transition: transform 0.5s ease-in-out; /* スライドイン時のアニメーション設定 */
     }
 
     .image-container:hover img {
-      transform: translateY(0); /* ホバー時に画像が表示される */
+      transform: translateY(0); /* ホバー時に画像を元の位置にスライドイン */
     }
 
     /* ナビゲーションリンク */
     nav {
-      margin-top: 20px; /* コンテンツとの余白を設定 */
+      margin-top: 20px; /* ナビゲーションの上部に余白を追加 */
     }
 
     nav a {
-      color: #007BFF; /* 見やすいリンク色 */
-      text-decoration: none; /* 下線を削除してシンプルなデザインに */
-      margin: 0 10px; /* リンク間のスペースを設定 */
+      color: #007BFF; /* リンク文字を目立つ青色に設定 */
+      text-decoration: none; /* 下線を削除 */
+      margin: 0 10px; /* 各リンクの間隔を設定 */
     }
 
     nav a:hover {
-      text-decoration: underline; /* ホバー時に視覚的なフィードバックを追加 */
+      text-decoration: underline; /* ホバー時に下線を表示してフィードバックを追加 */
+    }
+
+    /* レスポンシブ対応 */
+    @media screen and (max-width: 768px) { /* 画面幅が768px以下の場合 */
+      .image-container {
+        flex-direction: column; /* 画像を縦方向に並べる */
+      }
+
+      img {
+        max-width: 90%; /* 画像の幅を画面幅の90%に制限 */
+      }
     }
   </style>
 </head>
 <body>
-  <h1>こんにちは！</h1> <!-- ユーザーに挨拶するシンプルな見出し -->
+  <h1>こんにちは！</h1> <!-- ユーザーへの挨拶メッセージ -->
   <p>ここには趣味や好きなものについて記述します！！</p> <!-- ページの簡単な説明文 -->
-  <img src="assets/IMG_2538.jpg" alt="プロフィール画像" width="200"> <!-- ユーザーのプロフィール画像 -->
-  <p style="color: orange;">ドラゴンボールが大好きです。</p> <!-- 目立つ色を使った趣味の紹介 -->
+  <img src="assets/IMG_2538.jpg" alt="プロフィール画像" width="200"> <!-- プロフィール画像 -->
+  <p style="color: orange;">ドラゴンボールが大好きです。</p> <!-- 趣味を強調するテキスト -->
 
   <div class="image-container">
-    <!-- 以下、ドラゴンボールキャラクターの画像 -->
-    <img src="assets/IMG_2766.JPG" alt="ベジータ" width="250">
-    <img src="assets/IMG_2767.JPG" alt="悟空" width="250">
-    <img src="assets/IMG_2768.JPG" alt="ゴジータ" width="250">
-    <img src="assets/IMG_2769.JPG" alt="悟飯" width="250">
-    <img src="assets/IMG_2772.JPG" alt="ベジット" width="300">
+    <!-- 以下、キャラクター画像 -->
+    <img src="assets/IMG_2766.JPG" alt="ベジータ" width="250"> <!-- ベジータの画像 -->
+    <img src="assets/IMG_2767.JPG" alt="悟空" width="250"> <!-- 悟空の画像 -->
+    <img src="assets/IMG_2768.JPG" alt="ゴジータ" width="250"> <!-- ゴジータの画像 -->
+    <img src="assets/IMG_2769.JPG" alt="悟飯" width="250"> <!-- 悟飯の画像 -->
+    <img src="assets/IMG_2772.JPG" alt="ベジット" width="300"> <!-- ベジットの画像 -->
   </div>
 
   <nav>
@@ -85,3 +101,4 @@
   </nav>
 </body>
 </html>
+
