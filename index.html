@@ -3,20 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <title>ホームページ</title>
-  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* 基本スタイル */
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      background-color: #f9f9f9;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      color: #333;
+      margin-top: 20px;
+    }
+
+    p {
+      color: #555;
+      margin: 10px 0;
+    }
+
+    img {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 画像スライドインエフェクト */
+    .image-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .image-container img {
+      transform: translateY(100%); /* 初期位置を下に隠す */
+      transition: transform 0.5s ease-in-out;
+    }
+
+    .image-container:hover img {
+      transform: translateY(0); /* 元の位置にスライドイン */
+    }
+
+    /* ナビゲーションリンク */
+    nav {
+      margin-top: 20px;
+    }
+
+    nav a {
+      color: #007BFF;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <h1>こんにちは！</h1>
   <p>ここには趣味や好きなものについて記述します！！</p>
   <img src="assets/IMG_2538.jpg" alt="プロフィール画像" width="200">
   <p style="color: orange;">ドラゴンボールが大好きです。</p>
- <div class="image-container">
-  <img src="assets/IMG_2766.JPG" alt="ベジータ" width="250">
-   <img src="assets/IMG_2767.JPG" alt="悟空" width="250">
-   <img src="assets/IMG_2768.JPG" alt="ゴジータ" width="250">
-   <img src="assets/IMG_2769.JPG" alt="悟飯" width="250">
-   <img src="assets/IMG_2772.JPG" alt="ベジット" width="300">
- </div>
+  <div class="image-container">
+    <img src="assets/IMG_2766.JPG" alt="ベジータ" width="250">
+    <img src="assets/IMG_2767.JPG" alt="悟空" width="250">
+    <img src="assets/IMG_2768.JPG" alt="ゴジータ" width="250">
+    <img src="assets/IMG_2769.JPG" alt="悟飯" width="250">
+    <img src="assets/IMG_2772.JPG" alt="ベジット" width="300">
+  </div>
   <nav>
     <a href="about.html">TOPへ</a> |
     <a href="contact.html">連絡先はこちら</a>
