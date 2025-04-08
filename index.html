@@ -6,79 +6,82 @@
   <style>
     /* 基本スタイル */
     body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      background-color: #f9f9f9;
-      text-align: center;
+      font-family: Arial, sans-serif; /* シンプルで読みやすいフォント */
+      line-height: 1.6; /* 読みやすさ向上のために行間を調整 */
+      background-color: #f9f9f9; /* 優しい背景色でテキストを目立たせる */
+      text-align: center; /* コンテンツを中央揃え */
       margin: 0;
       padding: 0;
     }
 
     h1 {
-      color: #333;
-      margin-top: 20px;
+      color: #333; /* 見出しを目立たせる濃い色 */
+      margin-top: 20px; /* 十分な余白を確保 */
     }
 
     p {
-      color: #555;
-      margin: 10px 0;
+      color: #555; /* テキストカラーを少し薄くして背景とのコントラストを調整 */
+      margin: 10px 0; /* 段落間のスペースを適切に設定 */
     }
 
     img {
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 10px; /* 画像の角を丸くして柔らかい印象を与える */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 画像を立体的に見せる影 */
     }
 
     /* 画像スライドインエフェクト */
     .image-container {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 20px;
-      overflow: hidden;
-      position: relative;
+      display: flex; /* 横並びに画像を配置 */
+      justify-content: center; /* 中央揃え */
+      gap: 10px; /* 画像間のスペースを設定 */
+      margin-top: 20px; /* セクション間の余白を確保 */
+      overflow: hidden; /* スライドインエフェクト用に画像がはみ出さないよう設定 */
+      position: relative; /* 子要素の配置に関連する基準 */
     }
 
     .image-container img {
-      transform: translateY(100%); /* 初期位置を下に隠す */
-      transition: transform 0.5s ease-in-out;
+      transform: translateY(100%); /* 初期位置をコンテナ外の下部に設定 */
+      transition: transform 0.5s ease-in-out; /* スライドインのアニメーションをスムーズに */
     }
 
     .image-container:hover img {
-      transform: translateY(0); /* 元の位置にスライドイン */
+      transform: translateY(0); /* ホバー時に画像が表示される */
     }
 
     /* ナビゲーションリンク */
     nav {
-      margin-top: 20px;
+      margin-top: 20px; /* コンテンツとの余白を設定 */
     }
 
     nav a {
-      color: #007BFF;
-      text-decoration: none;
-      margin: 0 10px;
+      color: #007BFF; /* 見やすいリンク色 */
+      text-decoration: none; /* 下線を削除してシンプルなデザインに */
+      margin: 0 10px; /* リンク間のスペースを設定 */
     }
 
     nav a:hover {
-      text-decoration: underline;
+      text-decoration: underline; /* ホバー時に視覚的なフィードバックを追加 */
     }
   </style>
 </head>
 <body>
-  <h1>こんにちは！</h1>
-  <p>ここには趣味や好きなものについて記述します！！</p>
-  <img src="assets/IMG_2538.jpg" alt="プロフィール画像" width="200">
-  <p style="color: orange;">ドラゴンボールが大好きです。</p>
+  <h1>こんにちは！</h1> <!-- ユーザーに挨拶するシンプルな見出し -->
+  <p>ここには趣味や好きなものについて記述します！！</p> <!-- ページの簡単な説明文 -->
+  <img src="assets/IMG_2538.jpg" alt="プロフィール画像" width="200"> <!-- ユーザーのプロフィール画像 -->
+  <p style="color: orange;">ドラゴンボールが大好きです。</p> <!-- 目立つ色を使った趣味の紹介 -->
+
   <div class="image-container">
+    <!-- 以下、ドラゴンボールキャラクターの画像 -->
     <img src="assets/IMG_2766.JPG" alt="ベジータ" width="250">
     <img src="assets/IMG_2767.JPG" alt="悟空" width="250">
     <img src="assets/IMG_2768.JPG" alt="ゴジータ" width="250">
     <img src="assets/IMG_2769.JPG" alt="悟飯" width="250">
     <img src="assets/IMG_2772.JPG" alt="ベジット" width="300">
   </div>
+
   <nav>
-    <a href="about.html">TOPへ</a> |
-    <a href="contact.html">連絡先はこちら</a>
+    <a href="about.html">TOPへ</a> | <!-- トップページへのリンク -->
+    <a href="contact.html">連絡先はこちら</a> <!-- 連絡先ページへのリンク -->
   </nav>
 </body>
 </html>
