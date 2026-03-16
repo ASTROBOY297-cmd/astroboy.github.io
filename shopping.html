@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>買い物リスト - 家計在庫アプリ（Web版）</title>
+  <style>
+    /* Embedded styles (standalone) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6}
+    .tabs .btn.active{opacity:1;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .page{max-width:1100px;margin:auto}
+    .toolbar{display:flex;gap:8px;align-items:center;margin:8px 0}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+    .table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .table th,.table td{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}
+    .table thead{background:#f3f4f6}
+    textarea{width:100%;margin-top:8px;padding:8px;border:1px solid #d1d5db;border-radius:6px}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn" href="home.html">ホーム</a>
+      <a class="btn" href="input.html">買い物入力</a>
+      <a class="btn" href="inventory.html">在庫一覧</a>
+      <a class="btn" href="history.html">履歴</a>
+      <a class="btn active" href="#">買い物リスト</a>
+      <a class="btn" href="master.html">商品マスタ</a>
+      <a class="btn" href="settings.html">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page" aria-labelledby="title">
+      <h2 id="title">買い物リスト（発注必要）</h2>
+
+      <table class="table" id="shopping-table">
+        <thead>
+          <tr><th>商品名</th><th>現在家にある数</th><th>発注点</th><th>単位</th><th>メモ</th><th>購入提案</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="toolbar">
+        <button class="btn" id="btn-copy">コピー（テキスト）</button>
+        <a class="btn" href="input.html">+ 買い物入力</a>
+      </div>
+      <textarea id="shopping-text" rows="6" readonly></textarea>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = (s)=>document.querySelector(s);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if(!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        }catch(e){ return { items: [], history: [] }; }
+      }
+
+      function aggregate(state){
+        const bought = new Map();
+        const used   = new Map();
+        for (const h of state.history){
+          const map = h.type === '購入' ? bought : (h.type === '使用' ? used : null);
+          if (!map) continue;
+          map.set(h.item, (map.get(h.item) || 0) + Number(h.qty || 0));
+        }
+        return state.items.map(it => {
+          const b = bought.get(it.name) || 0;
+          const u = used.get(it.name)   || 0;
+          const current = Number(it.initialStock || 0) + b - u;
+          return { ...it, current };
+        });
+      }
+
+      function render(){
+        const state = load();
+        const rowsAll = aggregate(state);
+        const tb = el('#shopping-table tbody');
+        const need = rowsAll.filter(r => r.current <= (Number(state.items.find(i=>i.name===r.name)?.reorderPoint||0)));
+        tb.innerHTML = need.map(r => {
+          const it = state.items.find(i=>i.name===r.name) || {};
+          const rp = Number(it.reorderPoint||0);
+          const unit = it.unit||'';
+          const note = it.note||'';
+          const suggest = Math.max(1, rp - r.current);
+          return `<tr><td>${r.name}</td><td>${r.current}</td><td>${rp}</td><td>${unit}</td><td>${note}</td><td>${suggest}</td></tr>`;
+        }).join('');
+        const text = need.map(r=>{
+          const it = state.items.find(i=>i.name===r.name) || {};
+          const rp = Number(it.reorderPoint||0);
+          const unit = it.unit||'';
+          const suggest = Math.max(1, rp - r.current);
+          return `・${r.name} ${suggest}${unit}`;
+        }).join('\n');
+        el('#shopping-text').value = text || '（発注必要な品目はありません）';
+      }
+
+      function setupCopy(){
+        const btn = el('#btn-copy');
+        if(!btn) return;
+        btn.addEventListener('click', async ()=>{
+          try{
+            await navigator.clipboard.writeText(el('#shopping-text').value);
+            alert('買い物リストをコピーしました');
+          }catch(e){ alert('コピーに失敗しました'); }
+        });
+      }
+
+      function init(){
+        render();
+        setupCopy();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
