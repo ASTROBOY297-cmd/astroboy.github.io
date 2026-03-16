@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>在庫一覧 - 家計在庫アプリ（Web版）</title>
+  <style>
+    /* Embedded styles (standalone) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6}
+    .tabs .btn.active{opacity:1;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .page{max-width:1200px;margin:auto}
+    .toolbar{display:flex;gap:8px;align-items:center;margin:8px 0}
+    input[type="search"], select{padding:8px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .table th,.table td{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}
+    .table thead{background:#f3f4f6}
+    .low{background:#fff7ed}
+    .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:8px 0}
+    .card{background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .kpi-title{font-size:12px;color:#555}
+    .kpi-value{font-size:20px;font-weight:700}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn" href="home.html">ホーム</a>
+      <a class="btn" href="input.html">買い物入力</a>
+      <a class="btn active" href="#">在庫一覧</a>
+      <a class="btn" href="history.html">履歴</a>
+      <a class="btn" href="shopping.html">買い物リスト</a>
+      <a class="btn" href="master.html">商品マスタ</a>
+      <a class="btn" href="settings.html">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page" aria-labelledby="title">
+      <h2 id="title">在庫一覧</h2>
+
+      <div class="kpi">
+        <div class="card"><div class="kpi-title">登録品目数</div><div id="kpi-items" class="kpi-value">0</div></div>
+        <div class="card"><div class="kpi-title">在庫0の品目数</div><div id="kpi-zero" class="kpi-value">0</div></div>
+        <div class="card"><div class="kpi-title">発注が必要</div><div id="kpi-reorder" class="kpi-value">0</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="inv-search" placeholder="品目検索 (例：牛乳)">
+        <select id="inv-filter-cat"><option value="">すべてのカテゴリ</option></select>
+        <button id="btn-clear-filter" class="btn">クリア</button>
+        <a class="btn" href="input.html">+ 買い物入力</a>
+      </div>
+
+      <table class="table" id="inventory-table">
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th title="手入力の初期在庫">初期在庫</th>
+            <th>お店で買った数</th>
+            <th>使った数</th>
+            <th>現在家にある数</th>
+            <th>発注点</th>
+            <th>状態</th>
+            <th>カテゴリ</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = (s) => document.querySelector(s);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        }catch(e){ return { items: [], history: [] }; }
+      }
+
+      function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+      function aggregate(state){
+        const bought = new Map();
+        const used   = new Map();
+        for (const h of state.history){
+          const map = h.type === '購入' ? bought : (h.type === '使用' ? used : null);
+          if (!map) continue;
+          map.set(h.item, (map.get(h.item) || 0) + Number(h.qty || 0));
+        }
+        const rows = state.items.map(it => {
+          const b = bought.get(it.name) || 0;
+          const u = used.get(it.name)   || 0;
+          const current = Number(it.initialStock || 0) + b - u;
+          const status  = current <= Number(it.reorderPoint || 0) ? '⚠ 発注必要' : 'OK';
+          return { ...it, bought: b, used: u, current, status };
+        });
+        return rows;
+      }
+
+      function renderKPI(rows){
+        el('#kpi-items').textContent = String(rows.length);
+        el('#kpi-zero').textContent = String(rows.filter(r=>r.current===0).length);
+        el('#kpi-reorder').textContent = String(rows.filter(r=>r.current <= (r.reorderPoint||0)).length);
+      }
+
+      function setupInventoryFilters(state){
+        const sel = el('#inv-filter-cat');
+        const cats = Array.from(new Set(state.items.map(i=>i.category).filter(Boolean))).sort((a,b)=>a.localeCompare(b,'ja'));
+        sel.innerHTML = '<option value="">すべてのカテゴリ</option>' + cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+      }
+
+      function renderTable(rows){
+        const q = (el('#inv-search').value || '').toLowerCase();
+        const cat = el('#inv-filter-cat').value || '';
+        const tbody = el('#inventory-table tbody');
+        const filtered = rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && (!cat || r.category === cat));
+        tbody.innerHTML = filtered.map(r => {
+          const low = r.current <= (r.reorderPoint||0);
+          return `<tr class="${low?'low':''}"><td>${r.name}</td><td>${r.initialStock||0}</td><td>${r.bought}</td><td>${r.used}</td><td>${r.current}</td><td>${r.reorderPoint||0}</td><td>${r.status}</td><td>${r.category||''}</td></tr>`;
+        }).join('');
+      }
+
+      function init(){
+        const state = load();
+        const rows = aggregate(state);
+        renderKPI(rows);
+        setupInventoryFilters(state);
+        renderTable(rows);
+        el('#inv-search').addEventListener('input', ()=> renderTable(aggregate(load())));
+        el('#inv-filter-cat').addEventListener('change', ()=> renderTable(aggregate(load())));
+        el('#btn-clear-filter').addEventListener('click', ()=>{ el('#inv-search').value=''; el('#inv-filter-cat').value=''; renderTable(aggregate(load())); });
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
