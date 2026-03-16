@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>履歴 - 家計在庫アプリ（Web版）</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>家計在庫アプリ（Web版）</h1>
+  <nav class="tabs">
+    <a class="btn" href="home.html">ホーム</a>
+    <a class="btn" href="input.html">買い物入力</a>
+    <a class="btn" href="inventory.html">在庫一覧</a>
+    <a class="btn primary" href="history.html">履歴</a>
+    <a class="btn" href="shopping.html">買い物リスト</a>
+    <a class="btn" href="master.html">商品マスタ</a>
+    <a class="btn" href="settings.html">設定/バックアップ</a>
+  </nav>
+</header>
+<main>
+<section class="page"><h2>履歴</h2><div class="toolbar"><button class="btn" id="btn-clear-history">履歴をすべて削除</button></div><table class="table" id="history-table"><thead><tr><th>日付</th><th>商品名</th><th>区分</th><th>数量</th><th>備考</th></tr></thead><tbody></tbody></table></section>
+</main>
+<footer class="app-footer">
+  <span>© 2026 家計在庫アプリ（Web版）</span>
+  <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

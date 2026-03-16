@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>設定/バックアップ - 家計在庫アプリ（Web版）</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>家計在庫アプリ（Web版）</h1>
+  <nav class="tabs">
+    <a class="btn" href="home.html">ホーム</a>
+    <a class="btn" href="input.html">買い物入力</a>
+    <a class="btn" href="inventory.html">在庫一覧</a>
+    <a class="btn" href="history.html">履歴</a>
+    <a class="btn" href="shopping.html">買い物リスト</a>
+    <a class="btn" href="master.html">商品マスタ</a>
+    <a class="btn primary" href="settings.html">設定/バックアップ</a>
+  </nav>
+</header>
+<main>
+<section class="page"><h2>設定 / バックアップ</h2><div class="settings-grid"><div><h3>データの保存先</h3><p>このWeb版はブラウザーの <code>localStorage</code> に保存します。GitHub Pages 公開後も同じ端末/ブラウザーなら継続利用できます。</p></div><div><h3>バックアップ</h3><button class="btn" id="btn-export">JSONを書き出す</button><input type="file" id="file-import" accept="application/json" hidden><button class="btn" id="btn-import">JSONを読み込む</button></div></div><details><summary>初期化（すべて消去）</summary><button class="btn danger" id="btn-reset">初期化する</button></details></section>
+</main>
+<footer class="app-footer">
+  <span>© 2026 家計在庫アプリ（Web版）</span>
+  <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

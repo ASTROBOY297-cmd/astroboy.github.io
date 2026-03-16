@@ -1,12 +1,12 @@
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+/* 共通スタイル（シングル/マルチページ両対応） */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
 .app-header{background:#1f2937;color:#fff;padding:12px 16px}
 .app-header h1{margin:0 0 8px;font-size:20px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
-.tabs button{background:#374151;color:#fff;border:none;border-radius:6px;padding:8px 10px;cursor:pointer}
-.tabs button.active{background:#3b82f6}
+.tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px}
+.tabs .btn.primary{background:#3b82f6;border-color:#3b82f6}
 main{padding:16px}
-.tab-section{display:none}
-.tab-section.visible{display:block}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
 .card{background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .kpi-title{font-size:12px;color:#555}
@@ -27,3 +27,4 @@ input,select,textarea{padding:8px;border:1px solid #d1d5db;border-radius:6px;bac
 .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
 .home-actions{display:flex;gap:8px}
 textarea#shopping-text{width:100%;margin-top:8px}
+.page{max-width:1100px;margin:auto}
