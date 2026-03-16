@@ -35,13 +35,13 @@
   <header class="app-header">
     <h1>家計在庫アプリ（Web版）</h1>
     <nav class="tabs">
-      <a class="btn" href="home.html">ホーム</a>
-      <a class="btn" href="input.html">買い物入力</a>
-      <a class="btn active" href="#">在庫一覧</a>
-      <a class="btn" href="history.html">履歴</a>
-      <a class="btn" href="shopping.html">買い物リスト</a>
-      <a class="btn" href="master.html">商品マスタ</a>
-      <a class="btn" href="settings.html">設定/バックアップ</a>
+      <a class="btn active" href="home.html">ホーム</a>
+      <a class="btn active" href="input.html">買い物入力</a>
+      <a class="btn active" href="inventory.html">在庫一覧</a>
+      <a class="btn active" href="history.html">履歴</a>
+      <a class="btn active" href="shopping.html">買い物リスト</a>
+      <a class="btn active" href="master.html">商品マスタ</a>
+      <a class="btn active" href="settings.html">設定/バックアップ</a>
     </nav>
   </header>
 
@@ -58,8 +58,8 @@
       <div class="toolbar">
         <input type="search" id="inv-search" placeholder="品目検索 (例：牛乳)">
         <select id="inv-filter-cat"><option value="">すべてのカテゴリ</option></select>
-        <button id="btn-clear-filter" class="btn">クリア</button>
-        <a class="btn" href="input.html">+ 買い物入力</a>
+        <button id="btn-clear-filter" class="btn active">クリア</button>
+        <a class="btn active" href="input.html">+ 買い物入力</a>
       </div>
 
       <table class="table" id="inventory-table">
