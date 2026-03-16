@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>設定 / バックアップ - 家計在庫アプリ（Web版）</title>
+  <style>
+    /* Embedded styles (standalone) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6}
+    .tabs .btn.active{opacity:1;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .page{max-width:900px;margin:auto}
+    .section{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:16px;margin-bottom:12px}
+    h3{margin:0 0 8px}
+    p{margin:4px 0 0;color:#4b5563}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+    input[type="file"]{display:none}
+    .small{font-size:12px;color:#6b7280}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn" href="home.html">ホーム</a>
+      <a class="btn" href="input.html">買い物入力</a>
+      <a class="btn" href="inventory.html">在庫一覧</a>
+      <a class="btn" href="history.html">履歴</a>
+      <a class="btn" href="shopping.html">買い物リスト</a>
+      <a class="btn" href="master.html">商品マスタ</a>
+      <a class="btn active" href="#">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page" aria-labelledby="title">
+      <h2 id="title">設定 / バックアップ</h2>
+
+      <div class="section">
+        <h3>データの保存先</h3>
+        <p>このWeb版はブラウザーの <code>localStorage</code> に保存します（このPCとブラウザーでのみ有効）。</p>
+        <p class="small">キー名：<code>householdInventoryData.v1</code></p>
+      </div>
+
+      <div class="section" aria-labelledby="backup">
+        <h3 id="backup">バックアップと復元</h3>
+        <div class="controls">
+          <button class="btn" id="btn-export">JSONを書き出す</button>
+          <label class="btn" for="file-import">JSONを読み込む</label>
+          <input type="file" id="file-import" accept="application/json" />
+        </div>
+        <p class="small">* バックアップJSONには <code>items</code> と <code>history</code> が含まれます。</p>
+      </div>
+
+      <div class="section" aria-labelledby="reset">
+        <h3 id="reset">初期化</h3>
+        <p>すべてのデータ（商品マスタ・履歴）を削除します。元に戻せません。</p>
+        <div class="controls">
+          <button class="btn danger" id="btn-reset">初期化する</button>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = (s) => document.querySelector(s);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if(!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        }catch(e){ return { items: [], history: [] }; }
+      }
+      function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+      function exportJSON(){
+        const data = load();
+        const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'inventory-backup.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      async function importJSON(file){
+        const txt = await file.text();
+        try{
+          const data = JSON.parse(txt);
+          if(!Array.isArray(data.items) || !Array.isArray(data.history)) throw new Error('フォーマット不正');
+          save(data);
+          alert('読み込みました');
+        }catch(e){ alert('読み込みに失敗しました: '+ e.message); }
+      }
+
+      function resetAll(){
+        if(!confirm('初期化します。よろしいですか？\nこの操作は取り消せません。')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        alert('初期化しました');
+      }
+
+      function init(){
+        el('#btn-export').addEventListener('click', exportJSON);
+        el('#file-import').addEventListener('change', (ev)=>{ const f=ev.target.files[0]; if(f) importJSON(f).finally(()=> ev.target.value=''); });
+        el('#btn-reset').addEventListener('click', resetAll);
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
