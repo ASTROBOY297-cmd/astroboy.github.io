@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>買い物入力 - 家計在庫アプリ（Web版）</title>
+  <style>
+    /* Embedded styles (standalone) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6}
+    .tabs .btn.active{opacity:1;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .page{max-width:1100px;margin:auto}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:8px}
+    .form-actions{grid-column:1/-1;display:flex;gap:8px}
+    label{display:flex;flex-direction:column;gap:4px;font-size:14px}
+    input,select{padding:8px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+    .hint{color:#6b7280;margin:8px 0}
+    .table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .table th,.table td{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}
+    .table thead{background:#f3f4f6}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn" href="home.html">ホーム</a>
+      <a class="btn active" href="#">買い物入力</a>
+      <a class="btn" href="inventory.html">在庫一覧</a>
+      <a class="btn" href="history.html">履歴</a>
+      <a class="btn" href="shopping.html">買い物リスト</a>
+      <a class="btn" href="master.html">商品マスタ</a>
+      <a class="btn" href="settings.html">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page" aria-labelledby="title">
+      <h2 id="title">買い物入力（購入/使用）</h2>
+      <form id="purchase-form" class="form-grid">
+        <label>日付<input type="date" id="in-date" required></label>
+        <label>商品名<input type="text" id="in-item" list="items-list" placeholder="例：牛乳" required></label>
+        <datalist id="items-list"></datalist>
+        <label>区分
+          <select id="in-type">
+            <option value="購入">購入</option>
+            <option value="使用">使用</option>
+          </select>
+        </label>
+        <label>数量<input type="number" id="in-qty" min="1" step="1" value="1" required></label>
+        <label>備考<input type="text" id="in-note" placeholder="任意"></label>
+        <div class="form-actions">
+          <button type="submit" class="btn primary">追加</button>
+          <button type="button" id="btn-bulk-add" class="btn">直近購入品を +1</button>
+          <a class="btn" href="home.html">ホームへ戻る</a>
+        </div>
+      </form>
+      <p class="hint">※ 未登録の品目でもそのまま追加できます（在庫に自動登録）。同じ「日付／商品名／区分」で再入力した場合、履歴の既存行に数量を加算します。</p>
+
+      <h3>直近の入力</h3>
+      <table class="table" id="recent-input-table">
+        <thead><tr><th>日付</th><th>商品名</th><th>区分</th><th>数量</th><th>備考</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = (s) => document.querySelector(s);
+
+      // 初期データ（localStorage が空のときのみ投入）
+      function ensureInitialData(){
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return;
+        const initial = {
+          items: [
+            { name: '牛乳', category: '乳製品', reorderPoint: 1, unit: '本', note: '', initialStock: 0 },
+            { name: '卵',   category: '乳製品', reorderPoint: 1, unit: 'パック', note: '', initialStock: 0 },
+            { name: '洗濯用洗剤', category: '日用品', reorderPoint: 1, unit: '個', note: '', initialStock: 0 }
+          ],
+          history: []
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      }
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        }catch(e){ return { items: [], history: [] }; }
+      }
+
+      function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+      function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+      function renderDatalist(state){
+        const dl = el('#items-list'); if(!dl) return;
+        dl.innerHTML = state.items.slice().sort((a,b)=>a.name.localeCompare(b.name,'ja')).map(it=>`<option value="${it.name}"></option>`).join('');
+      }
+
+      function renderRecent(state){
+        const tb = el('#recent-input-table tbody'); if(!tb) return;
+        const last = state.history.slice(-20).reverse();
+        tb.innerHTML = last.map((h,idx)=>`
+          <tr>
+            <td>${h.date}</td><td>${h.item}</td><td>${h.type}</td><td>${h.qty}</td><td>${h.note||''}</td>
+            <td><button class="btn danger" data-del="${state.history.length-1-idx}">削除</button></td>
+          </tr>`).join('');
+        tb.querySelectorAll('button[data-del]').forEach(btn=>btn.addEventListener('click',()=>{
+          const i = Number(btn.dataset.del);
+          const s = load();
+          s.history.splice(i,1);
+          save(s);
+          renderDatalist(s); renderRecent(s);
+        }));
+      }
+
+      function ensureItemExists(state, name){
+        let idx = state.items.findIndex(i=>i.name===name);
+        if(idx === -1){
+          state.items.push({ name, category:'', reorderPoint:1, unit:'個', note:'', initialStock:0 });
+          save(state);
+        }
+      }
+
+      function onSubmit(e){
+        e.preventDefault();
+        const date = el('#in-date').value || todayStr();
+        const name = (el('#in-item').value||'').trim();
+        const type = el('#in-type').value;
+        const qty  = Math.max(1, Number(el('#in-qty').value||1));
+        const note = (el('#in-note').value||'').trim();
+        if(!name) return;
+        const state = load();
+        ensureItemExists(state, name);
+        // 仕様：同じ「日付/商品名/区分」があれば加算
+        let merged=false;
+        for(let i=state.history.length-1;i>=0;i--){
+          const h = state.history[i];
+          if(h.item===name && h.type===type && h.date===date){
+            h.qty = Number(h.qty||0) + qty;
+            if(note) h.note = note;
+            merged=true; break;
+          }
+        }
+        if(!merged){ state.history.push({ date, item:name, type, qty, note }); }
+        save(state);
+        // reset
+        el('#in-item').value='';
+        el('#in-qty').value='1';
+        el('#in-note').value='';
+        renderDatalist(state); renderRecent(state);
+      }
+
+      function onBulkAdd(){
+        const state = load();
+        const last = state.history.filter(h=>h.type==='購入').slice(-1)[0];
+        const name = last?.item || state.items[0]?.name;
+        if(!name){ return; }
+        ensureItemExists(state, name);
+        const date = todayStr();
+        let merged=false;
+        for(let i=state.history.length-1;i>=0;i--){
+          const h = state.history[i];
+          if(h.item===name && h.type==='購入' && h.date===date){
+            h.qty = Number(h.qty||0) + 1; merged=true; break;
+          }
+        }
+        if(!merged){ state.history.push({ date, item:name, type:'購入', qty:1, note:'ショートカット' }); }
+        save(state);
+        renderDatalist(state); renderRecent(state);
+      }
+
+      function init(){
+        ensureInitialData();
+        const state = load();
+        const d = document.querySelector('#in-date'); if(d) d.value = todayStr();
+        renderDatalist(state);
+        renderRecent(state);
+        const f = document.querySelector('#purchase-form'); if(f) f.addEventListener('submit', onSubmit);
+        const bulk = document.querySelector('#btn-bulk-add'); if(bulk) bulk.addEventListener('click', onBulkAdd);
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
