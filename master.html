@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>商品マスタ - 家計在庫アプリ（Web版）</title>
+  <style>
+    /* Embedded styles (standalone) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6}
+    .tabs .btn.active{opacity:1;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .page{max-width:1100px;margin:auto}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:8px}
+    .form-actions{grid-column:1/-1;display:flex;gap:8px}
+    label{display:flex;flex-direction:column;gap:4px;font-size:14px}
+    input,select{padding:8px;border:1px solid #d1d5db;border-radius:6px;background:#fff}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .btn.danger{background:#ef4444;color:#fff;border-color:#ef4444}
+    .table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .table th,.table td{padding:8px 10px;border-bottom:1px solid #eee;text-align:left}
+    .table thead{background:#f3f4f6}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn" href="home.html">ホーム</a>
+      <a class="btn" href="input.html">買い物入力</a>
+      <a class="btn" href="inventory.html">在庫一覧</a>
+      <a class="btn" href="history.html">履歴</a>
+      <a class="btn" href="shopping.html">買い物リスト</a>
+      <a class="btn active" href="#">商品マスタ</a>
+      <a class="btn" href="settings.html">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page" aria-labelledby="title">
+      <h2 id="title">商品マスタ</h2>
+      <form id="master-form" class="form-grid">
+        <label>商品名<input type="text" id="m-item" required></label>
+        <label>カテゴリ<input type="text" id="m-cat" placeholder="例：乳製品"></label>
+        <label>発注点<input type="number" id="m-reorder" min="0" step="1" value="1"></label>
+        <label>単位<input type="text" id="m-unit" value="個"></label>
+        <label>メモ<input type="text" id="m-note" placeholder="任意"></label>
+        <div class="form-actions">
+          <button class="btn primary" type="submit">登録/更新</button>
+          <button class="btn" type="button" id="btn-new">新規クリア</button>
+          <a class="btn" href="input.html">+ 買い物入力</a>
+        </div>
+      </form>
+
+      <table class="table" id="master-table">
+        <thead><tr><th>商品名</th><th>カテゴリ</th><th>発注点</th><th>単位</th><th>メモ</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = (s)=>document.querySelector(s);
+
+      function load(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if(!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        }catch(e){ return { items: [], history: [] }; }
+      }
+      function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+
+      function ensureItem(state, name){
+        let idx = state.items.findIndex(i=>i.name===name);
+        if(idx===-1){ state.items.push({ name, category:'', reorderPoint:1, unit:'個', note:'', initialStock:0 }); idx = state.items.length-1; }
+        return idx;
+      }
+
+      function renderTable(){
+        const state = load();
+        const tb = el('#master-table tbody');
+        tb.innerHTML = state.items
+          .slice().sort((a,b)=>a.name.localeCompare(b.name,'ja'))
+          .map((it,idx)=>`<tr>
+            <td>${it.name}</td><td>${it.category||''}</td><td>${Number(it.reorderPoint||0)}</td>
+            <td>${it.unit||''}</td><td>${it.note||''}</td>
+            <td>
+              <button class="btn" data-edit="${idx}">編集</button>
+              <button class="btn danger" data-del="${idx}">削除</button>
+            </td>
+          </tr>`).join('');
+
+        tb.querySelectorAll('button[data-edit]').forEach(btn=>btn.addEventListener('click',()=>{
+          const i = Number(btn.dataset.edit);
+          const st = load(); const it = st.items[i]; if(!it) return;
+          el('#m-item').value = it.name;
+          el('#m-cat').value = it.category||'';
+          el('#m-reorder').value = Number(it.reorderPoint||0);
+          el('#m-unit').value = it.unit||'個';
+          el('#m-note').value = it.note||'';
+          window.scrollTo({top:0,behavior:'smooth'});
+        }));
+
+        tb.querySelectorAll('button[data-del]').forEach(btn=>btn.addEventListener('click',()=>{
+          const i = Number(btn.dataset.del);
+          const st = load();
+          if(!confirm(`「${st.items[i].name}」を削除しますか？\n※ 履歴はそのまま残ります。`)) return;
+          st.items.splice(i,1);
+          save(st);
+          renderTable();
+        }));
+      }
+
+      function setupForm(){
+        const form = el('#master-form');
+        form.addEventListener('submit', (e)=>{
+          e.preventDefault();
+          const name = (el('#m-item').value||'').trim(); if(!name) return;
+          const st = load();
+          const idx = ensureItem(st, name);
+          st.items[idx].category = (el('#m-cat').value||'').trim();
+          st.items[idx].reorderPoint = Number(el('#m-reorder').value||0);
+          st.items[idx].unit = (el('#m-unit').value||'個').trim();
+          st.items[idx].note = (el('#m-note').value||'').trim();
+          save(st);
+          renderTable();
+          alert('登録/更新しました');
+        });
+        el('#btn-new').addEventListener('click', ()=>{
+          form.reset();
+          el('#m-unit').value='個';
+          el('#m-reorder').value='1';
+          el('#m-item').focus();
+        });
+      }
+
+      function init(){
+        renderTable();
+        setupForm();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
