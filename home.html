@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ホーム - 家計在庫アプリ（Web版）</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Meiryo",sans-serif;background:#f6f7fb;color:#222}
+    .app-header{background:#1f2937;color:#fff;padding:12px 16px}
+    .app-header h1{margin:0 0 8px;font-size:20px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tabs .btn{background:#374151;color:#fff;text-decoration:none;border:1px solid #374151;border-radius:6px;padding:8px 10px;opacity:.6;pointer-events:none}
+    .tabs .btn.active{opacity:1;pointer-events:auto;background:#3b82f6;border-color:#3b82f6}
+    main{padding:16px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;max-width:1100px;margin-left:auto;margin-right:auto}
+    .card{background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .kpi-title{font-size:12px;color:#555}
+    .kpi-value{font-size:24px;font-weight:700}
+    .btn{display:inline-block;padding:8px 12px;border-radius:6px;border:1px solid #d1d5db;background:#fff;color:#111;cursor:pointer;text-decoration:none}
+    .btn.primary{background:#3b82f6;color:#fff;border-color:#3b82f6}
+    .home-actions{display:flex;gap:8px;max-width:1100px;margin:auto}
+    .home-actions .btn{opacity:.6;pointer-events:none}
+    .app-footer{padding:10px 16px;border-top:1px solid #e5e7eb;color:#6b7280;display:flex;gap:12px;justify-content:space-between}
+    .container{max-width:1100px;margin:auto}
+    .sr-only{position:absolute;left:-9999px}
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <h1>家計在庫アプリ（Web版）</h1>
+    <nav class="tabs">
+      <a class="btn active" href="#">ホーム</a>
+      <a class="btn" href="#">買い物入力</a>
+      <a class="btn" href="#">在庫一覧</a>
+      <a class="btn" href="#">履歴</a>
+      <a class="btn" href="#">買い物リスト</a>
+      <a class="btn" href="#">商品マスタ</a>
+      <a class="btn" href="#">設定/バックアップ</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="container" aria-labelledby="home-section-title">
+      <h2 id="home-section-title" class="sr-only">ホーム</h2>
+
+      <div class="cards" role="list">
+        <div class="card" role="listitem" aria-live="polite">
+          <div class="kpi-title">今日の日付</div>
+          <div id="kpi-today" class="kpi-value">-</div>
+        </div>
+        <div class="card" role="listitem" aria-live="polite">
+          <div class="kpi-title">登録品目数</div>
+          <div id="kpi-items" class="kpi-value">0</div>
+        </div>
+        <div class="card" role="listitem" aria-live="polite">
+          <div class="kpi-title">在庫0の品目数</div>
+          <div id="kpi-zero" class="kpi-value">0</div>
+        </div>
+        <div class="card" role="listitem" aria-live="polite">
+          <div class="kpi-title">発注が必要</div>
+          <div id="kpi-reorder" class="kpi-value">0</div>
+        </div>
+      </div>
+
+      <div class="home-actions">
+        <a class="btn primary" href="#">今すぐ「買い物入力」へ</a>
+        <a class="btn" href="#">買い物リストを見る</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>© 2026 家計在庫アプリ（Web版）</span>
+    <a href="https://github.com/" target="_blank" rel="noreferrer">GitHub Pages でホスト</a>
+  </footer>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'householdInventoryData.v1';
+      const el = s => document.querySelector(s);
+
+      function ensureInitialData() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return;
+        const initial = {
+          items: [
+            { name: '牛乳', category: '乳製品', reorderPoint: 1, unit: '本', note: '', initialStock: 0 },
+            { name: '卵',   category: '乳製品', reorderPoint: 1, unit: 'パック', note: '', initialStock: 0 },
+            { name: '洗濯用洗剤', category: '日用品', reorderPoint: 1, unit: '個', note: '', initialStock: 0 }
+          ],
+          history: []
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+      }
+
+      function load() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return { items: [], history: [] };
+          const d = JSON.parse(raw);
+          d.items ??= [];
+          d.history ??= [];
+          return d;
+        } catch {
+          return { items: [], history: [] };
+        }
+      }
+
+      function aggregate(state) {
+        const bought = new Map();
+        const used   = new Map();
+        for (const h of state.history) {
+          const map = h.type === '購入' ? bought : (h.type === '使用' ? used : null);
+          if (!map) continue;
+          map.set(h.item, (map.get(h.item) || 0) + Number(h.qty || 0));
+        }
+        const rows = state.items.map(it => {
+          const b = bought.get(it.name) || 0;
+          const u = used.get(it.name)   || 0;
+          const current = Number(it.initialStock || 0) + b - u;
+          const status  = current <= Number(it.reorderPoint || 0) ? '⚠ 発注必要' : 'OK';
+          return { ...it, bought: b, used: u, current, status };
+        });
+        return rows;
+      }
+
+      function todayStr() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function renderKPI() {
+        const state = load();
+        const rows  = aggregate(state);
+        el('#kpi-today').textContent   = todayStr();
+        el('#kpi-items').textContent   = String(rows.length);
+        el('#kpi-zero').textContent    = String(rows.filter(r => r.current === 0).length);
+        el('#kpi-reorder').textContent = String(rows.filter(r => r.current <= (r.reorderPoint || 0)).length);
+      }
+
+      ensureInitialData();
+      renderKPI();
+    })();
+  </script>
+</body>
+</html>
